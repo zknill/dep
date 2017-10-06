@@ -120,6 +120,11 @@ type SourceManager interface {
 	// InferConstraint tries to puzzle out what kind of version is given in a string -
 	// semver, a revision, or as a fallback, a plain tag
 	InferConstraint(s string, pi ProjectIdentifier) (Constraint, error)
+
+	// InferConstraintIC tries to puzzle out what kind of version is given in a string -
+	// semver, a revision, or as a fallback, a plain tag. The constraint returned has an
+	// inferred caret when the semantic version takes affect.
+	InferConstraintIC(s string, pi ProjectIdentifier) (Constraint, error)
 }
 
 // A ProjectAnalyzer is responsible for analyzing a given path for Manifest and
@@ -542,6 +547,17 @@ func (sm *SourceMgr) DeduceProjectRoot(ip string) (ProjectRoot, error) {
 // string. Preference is given first for branches, then semver constraints, then
 // plain tags, and then revisions.
 func (sm *SourceMgr) InferConstraint(s string, pi ProjectIdentifier) (Constraint, error) {
+	return sm.inferConstraint(s, pi, false)
+}
+
+// InferConstraintIC tries to puzzle out what kind of version is given in a
+// string. Preference is given first for branches, then semver constraints, then
+// plain tags, and then revisions. Semantic Versions have an inferred caret.
+func (sm *SourceMgr) InferConstraintIC(s string, pi ProjectIdentifier) (Constraint, error) {
+	return sm.inferConstraint(s, pi, true)
+}
+
+func (sm *SourceMgr) inferConstraint(s string, pi ProjectIdentifier, ic bool) (Constraint, error) {
 	if s == "" {
 		return Any(), nil
 	}
@@ -566,7 +582,12 @@ func (sm *SourceMgr) InferConstraint(s string, pi ProjectIdentifier) (Constraint
 	}
 
 	// Semver Constraint
-	c, err := NewSemverConstraintIC(s)
+	var c Constraint
+	if ic {
+		c, err = NewSemverConstraintIC(s)
+	} else {
+		c, err = NewSemverConstraint(s)
+	}
 	if c != nil && err == nil {
 		return c, nil
 	}

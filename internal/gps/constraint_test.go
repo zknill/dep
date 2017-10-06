@@ -1005,3 +1005,28 @@ func TestConstraintEncoding(t *testing.T) {
 		})
 	}
 }
+
+func TestIsSpecificSemVer(t *testing.T) {
+	for _, testcase := range []struct {
+		name       string
+		constraint Constraint
+		expected   bool
+	}{
+		{"Any", Any(), true},
+		{"None", none, true},
+		{"Branch", NewBranch("test"), true},
+		{"Revision", Revision("vitamins"), true},
+		{"Simple Version", testSemverConstraint(t, "1.0.0"), true},
+		{"Explicit Version", testSemverConstraint(t, "=1.0.0"), true},
+		{"Gt Range", testSemverConstraint(t, ">1.0.0"), false},
+		{"Caret Range", testSemverConstraint(t, "^1.0.0"), false},
+		{"Caret Range2", testSemverConstraint(t, "^v1.0.0"), false},
+	} {
+		t.Run(testcase.name, func(t *testing.T) {
+			result := IsSpecificSemVer(testcase.constraint)
+			if result != testcase.expected {
+				t.Errorf("expected %v; got %v", testcase.expected, result)
+			}
+		})
+	}
+}

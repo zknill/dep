@@ -98,7 +98,7 @@ func TestSourceManager_InferConstraint(t *testing.T) {
 			})
 			h.Must(err)
 
-			got, err := sm.InferConstraint(tc.str, tc.project)
+			got, err := sm.InferConstraintIC(tc.str, tc.project)
 			h.Must(err)
 
 			wantT := reflect.TypeOf(tc.want)

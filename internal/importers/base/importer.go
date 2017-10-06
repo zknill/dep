@@ -198,7 +198,7 @@ func (i *Importer) ImportPackages(packages []ImportedPackage, defaultConstraintF
 			},
 		}
 
-		pc.Constraint, err = i.sm.InferConstraint(prj.ConstraintHint, pc.Ident)
+		pc.Constraint, err = i.sm.InferConstraintIC(prj.ConstraintHint, pc.Ident)
 		if err != nil {
 			pc.Constraint = gps.Any()
 		}

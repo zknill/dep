@@ -509,6 +509,10 @@ func (cmd *ensureCommand) runAdd(ctx *dep.Ctx, args []string, p *dep.Project, sm
 				return
 			}
 
+			if !gps.IsAny(pc.Constraint) && !gps.IsSpecificSemVer(pc.Constraint) {
+				errCh <- errors.Errorf("-add does not allow semver range for %s; use an explicit version or add the constraint manually", pc.Ident.ProjectRoot)
+			}
+
 			err = sm.SyncSourceFor(pc.Ident)
 			if err != nil {
 				errCh <- errors.Wrapf(err, "failed to fetch source for %s", pc.Ident.ProjectRoot)
@@ -657,6 +661,13 @@ func (cmd *ensureCommand) runAdd(ctx *dep.Ctx, args []string, p *dep.Project, sm
 
 			if !gps.IsAny(instr.constraint) {
 				pp.Constraint = instr.constraint
+				if instr.typ&isInNeither != 0 {
+					c, err := sm.InferConstraintIC(instr.constraint.String(), instr.id)
+					if err != nil {
+						return errors.Wrap(err, "failed to infer constraint for manifest after solving for constraint")
+					}
+					pp.Constraint = c
+				}
 			}
 			appender.Constraints[pr] = pp
 		}
